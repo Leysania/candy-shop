@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  pgsql:
+    env_file:
+      - ./.env
+    image: postgres
+    container_name: candy_shop_pgsql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      SERVICE_NAME: candy_shop_pgsql
+    volumes:
+      - ./data/pgsql:/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "${DBMS_PORT}:${DBMS_PORT}"
+
+  server:
+    command: sh -c 'npm install && node index.js'
+    container_name: candy_shop_server
+    image: node:20-alpine
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    volumes:
+      - ./:/app:rw
+    working_dir: /app
+    depends_on:
+      - pgsql
